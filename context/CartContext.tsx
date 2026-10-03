@@ -7,6 +7,8 @@ import React, {
   useState,
 } from "react";
 
+import { showAlert } from "@/lib/alert";
+
 export interface CartItem {
   id: string;
   medicineId: string;
@@ -122,4 +124,41 @@ export function useCart() {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
+}
+
+/**
+ * Adds an item to the cart, which can only hold one pharmacy's items at a time
+ * (checkout creates a single order). If the item comes from another pharmacy,
+ * ask before replacing the cart. `onAdded` runs once the item is in the cart.
+ */
+export function useAddToCart() {
+  const { items, addItem, clearCart } = useCart();
+
+  return useCallback(
+    (item: Omit<CartItem, "id">, onAdded?: () => void) => {
+      const current = items[0];
+      if (current && current.pharmacyId !== item.pharmacyId) {
+        showAlert(
+          "Changer de pharmacie ?",
+          `Votre panier contient des articles de ${current.pharmacyName}. Voulez-vous le vider pour commander chez ${item.pharmacyName} ?`,
+          [
+            { text: "Annuler", style: "cancel" },
+            {
+              text: "Vider le panier",
+              style: "destructive",
+              onPress: () => {
+                clearCart();
+                addItem(item);
+                onAdded?.();
+              },
+            },
+          ]
+        );
+        return;
+      }
+      addItem(item);
+      onAdded?.();
+    },
+    [items, addItem, clearCart]
+  );
 }

@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import PharmacyCard from "@/components/PharmacyCard";
 import Colors from "@/constants/colors";
-import { useCart } from "@/context/CartContext";
+import { useAddToCart } from "@/context/CartContext";
 import {
   MEDICINES,
   PHARMACIES,
@@ -26,7 +26,7 @@ export default function MedicineDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { addItem } = useCart();
+  const addItem = useAddToCart();
 
   const medicine = useMemo(() => MEDICINES.find((m) => m.id === id), [id]);
   const pharmacyData = useMemo(
@@ -135,16 +135,18 @@ export default function MedicineDetailScreen() {
                     style={[styles.addBtn, { backgroundColor: C.primary }]}
                     onPress={() => {
                       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                      addItem({
-                        medicineId: medicine.id,
-                        medicineName: medicine.name,
-                        pharmacyId: p.id,
-                        pharmacyName: p.name,
-                        price: p.stock.price,
-                        quantity: 1,
-                        unit: p.stock.unit,
-                      });
-                      router.push("/(tabs)/orders");
+                      addItem(
+                        {
+                          medicineId: medicine.id,
+                          medicineName: medicine.name,
+                          pharmacyId: p.id,
+                          pharmacyName: p.name,
+                          price: p.stock.price,
+                          quantity: 1,
+                          unit: p.stock.unit,
+                        },
+                        () => router.push("/(tabs)/orders")
+                      );
                     }}
                   >
                     <Feather name="shopping-cart" size={16} color="#FFF" />

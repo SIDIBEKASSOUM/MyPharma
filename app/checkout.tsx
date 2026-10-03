@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
@@ -17,6 +16,7 @@ import Colors from "@/constants/colors";
 import { useCart } from "@/context/CartContext";
 import { useOrders } from "@/context/OrdersContext";
 import { formatPrice } from "@/data/mockData";
+import { showAlert } from "@/lib/alert";
 
 const PAYMENT_METHODS = [
   { id: "orange", label: "Orange Money", icon: "smartphone" as const, color: "#F97316" },
@@ -56,7 +56,7 @@ export default function CheckoutScreen() {
     clearCart();
     setLoading(false);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert(
+    showAlert(
       "Commande confirmée !",
       `Votre commande #${order.id.slice(-6).toUpperCase()} a été passée avec succès.`,
       [{ text: "Voir mes commandes", onPress: () => router.replace("/(tabs)/orders") }]

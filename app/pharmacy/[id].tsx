@@ -13,7 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import { useCart } from "@/context/CartContext";
+import { useAddToCart } from "@/context/CartContext";
 import { PHARMACIES, getStockForPharmacy, formatPrice } from "@/data/mockData";
 
 export default function PharmacyDetailScreen() {
@@ -21,7 +21,7 @@ export default function PharmacyDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { addItem } = useCart();
+  const addItem = useAddToCart();
 
   const pharmacy = useMemo(() => PHARMACIES.find((p) => p.id === id), [id]);
   const stock = useMemo(
