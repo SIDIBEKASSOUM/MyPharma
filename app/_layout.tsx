@@ -16,6 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
+import { FavoritesProvider } from "@/context/FavoritesContext";
 import { OrdersProvider } from "@/context/OrdersContext";
 
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +31,10 @@ function RootLayoutNav() {
       <Stack.Screen name="pharmacy/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="guard-pharmacies" options={{ headerShown: false }} />
       <Stack.Screen name="emergency" options={{ headerShown: false }} />
+      <Stack.Screen name="favorites" options={{ headerShown: false }} />
+      <Stack.Screen name="help" options={{ headerShown: false }} />
+      <Stack.Screen name="about" options={{ headerShown: false }} />
+      <Stack.Screen name="privacy" options={{ headerShown: false }} />
       <Stack.Screen name="scan-prescription" options={{ headerShown: false }} />
       <Stack.Screen name="checkout" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
@@ -61,11 +66,13 @@ export default function RootLayout() {
           <AuthProvider>
             <CartProvider>
               <OrdersProvider>
-                <GestureHandlerRootView>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
+                <FavoritesProvider>
+                  <GestureHandlerRootView>
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </FavoritesProvider>
               </OrdersProvider>
             </CartProvider>
           </AuthProvider>

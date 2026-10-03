@@ -72,12 +72,12 @@ export default function ProfileScreen() {
   };
 
   const MENU_ITEMS = [
-    { icon: "package" as const, label: "Mes commandes", onPress: () => {} },
-    { icon: "heart" as const, label: "Médicaments favoris", onPress: () => {} },
+    { icon: "package" as const, label: "Mes commandes", onPress: () => router.push("/(tabs)/orders?tab=history") },
+    { icon: "heart" as const, label: "Médicaments favoris", onPress: () => router.push("/favorites") },
     { icon: "bell" as const, label: "Notifications", onPress: () => router.push("/notifications") },
-    { icon: "shield" as const, label: "Confidentialité", onPress: () => {} },
-    { icon: "help-circle" as const, label: "Aide & Support", onPress: () => {} },
-    { icon: "info" as const, label: "À propos", onPress: () => {} },
+    { icon: "shield" as const, label: "Confidentialité", onPress: () => router.push("/privacy") },
+    { icon: "help-circle" as const, label: "Aide & Support", onPress: () => router.push("/help") },
+    { icon: "info" as const, label: "À propos", onPress: () => router.push("/about") },
   ];
 
   if (!user) {

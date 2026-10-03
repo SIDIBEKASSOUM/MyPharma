@@ -22,6 +22,13 @@ export interface Order {
 interface OrdersContextType {
   orders: Order[];
   placeOrder: (pharmacyId: string, pharmacyName: string, items: CartItem[], total: number) => Order;
+  /** Cancels an order the pharmacy has not prepared yet. Returns false if it is too late. */
+  cancelOrder: (orderId: string) => boolean;
+}
+
+/** An order can be cancelled until the pharmacy has finished preparing it. */
+export function canCancel(order: Order): boolean {
+  return order.status === "pending" || order.status === "confirmed";
 }
 
 const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
@@ -106,8 +113,22 @@ export function OrdersProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const cancelOrder = useCallback(
+    (orderId: string): boolean => {
+      const order = orders.find((o) => o.id === orderId);
+      if (!order || !canCancel(order)) return false;
+      setOrders((prev) => {
+        const updated = prev.map((o) => (o.id === orderId ? { ...o, status: "cancelled" as const } : o));
+        AsyncStorage.setItem(ORDERS_KEY, JSON.stringify(updated));
+        return updated;
+      });
+      return true;
+    },
+    [orders]
+  );
+
   return (
-    <OrdersContext.Provider value={{ orders, placeOrder }}>
+    <OrdersContext.Provider value={{ orders, placeOrder, cancelOrder }}>
       {children}
     </OrdersContext.Provider>
   );

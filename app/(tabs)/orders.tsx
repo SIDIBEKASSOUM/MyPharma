@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -24,7 +24,13 @@ export default function OrdersScreen() {
   const router = useRouter();
   const { orders } = useOrders();
   const { items, totalItems, totalPrice, removeItem, updateQuantity } = useCart();
-  const [tab, setTab] = useState<"cart" | "history">("cart");
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<"cart" | "history">(params.tab === "history" ? "history" : "cart");
+
+  // Opening the screen with ?tab=history (e.g. from the profile) switches to the history tab.
+  useEffect(() => {
+    if (params.tab === "history") setTab("history");
+  }, [params.tab]);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
 

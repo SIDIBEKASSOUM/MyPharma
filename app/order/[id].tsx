@@ -12,8 +12,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Colors from "@/constants/colors";
-import { useOrders } from "@/context/OrdersContext";
+import { canCancel, useOrders } from "@/context/OrdersContext";
 import { formatPrice } from "@/data/mockData";
+import { showAlert } from "@/lib/alert";
 
 const STATUS_STEPS = ["pending", "confirmed", "ready", "completed"];
 const STATUS_LABELS: Record<string, string> = {
@@ -29,7 +30,7 @@ export default function OrderDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { orders } = useOrders();
+  const { orders, cancelOrder } = useOrders();
 
   const order = useMemo(() => orders.find((o) => o.id === id), [orders, id]);
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
@@ -181,6 +182,43 @@ export default function OrderDetailScreen() {
             </Text>
           </View>
         </View>
+
+        {isCancelled && (
+          <View style={[styles.cancelledBanner, { backgroundColor: C.dangerLight }]}>
+            <Feather name="x-circle" size={18} color={C.danger} />
+            <Text style={[styles.cancelledText, { color: "#991B1B", fontFamily: "Inter_500Medium" }]}>
+              Cette commande a été annulée.
+            </Text>
+          </View>
+        )}
+
+        {canCancel(order) && (
+          <TouchableOpacity
+            style={[styles.cancelBtn, { backgroundColor: C.dangerLight }]}
+            activeOpacity={0.7}
+            onPress={() =>
+              showAlert(
+                "Annuler la commande ?",
+                `La commande #${order.id.slice(-6).toUpperCase()} chez ${order.pharmacyName} sera annulée.`,
+                [
+                  { text: "Garder la commande", style: "cancel" },
+                  {
+                    text: "Annuler la commande",
+                    style: "destructive",
+                    onPress: () => {
+                      cancelOrder(order.id);
+                    },
+                  },
+                ]
+              )
+            }
+          >
+            <Feather name="x" size={18} color={C.danger} />
+            <Text style={[styles.cancelText, { color: C.danger, fontFamily: "Inter_600SemiBold" }]}>
+              Annuler la commande
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -242,6 +280,17 @@ const styles = StyleSheet.create({
   itemQty: { fontSize: 12 },
   itemTotal: { fontSize: 14 },
   divider: { height: 1, marginVertical: 10 },
+  cancelledBanner: { flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderRadius: 14 },
+  cancelledText: { flex: 1, fontSize: 14 },
+  cancelBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 16,
+    paddingVertical: 14,
+  },
+  cancelText: { fontSize: 15 },
   feeRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 2 },
   feeLabel: { fontSize: 14 },
   feeValue: { fontSize: 14 },

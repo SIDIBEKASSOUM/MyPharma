@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo } from "react";
@@ -17,6 +17,7 @@ import MedicineCard from "@/components/MedicineCard";
 import PharmacyCard from "@/components/PharmacyCard";
 import Colors from "@/constants/colors";
 import { useAddToCart } from "@/context/CartContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import {
   MEDICINES,
   countAvailablePharmacies,
@@ -32,6 +33,7 @@ export default function MedicineDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const addItem = useAddToCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const medicine = useMemo(() => MEDICINES.find((m) => m.id === id), [id]);
   const pharmacyData = useMemo(
@@ -45,6 +47,7 @@ export default function MedicineDetailScreen() {
   const unavailable = pharmacyData.filter((p) => !p.stock.available);
   const alternatives = useMemo(() => (medicine ? getAlternatives(medicine) : []), [medicine]);
   const needsPrescription = medicine?.prescription === "required";
+  const favorite = medicine ? isFavorite(medicine.id) : false;
 
   if (!medicine) {
     return (
@@ -74,6 +77,24 @@ export default function MedicineDetailScreen() {
               onPress={() => router.back()}
             >
               <Feather name="arrow-left" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+          <View
+            style={[
+              styles.favBtn,
+              { top: Platform.OS === "web" ? 67 + 16 : insets.top + 16 },
+            ]}
+          >
+            <TouchableOpacity
+              style={[styles.backCircle, { backgroundColor: "rgba(255,255,255,0.3)" }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleFavorite(medicine.id);
+              }}
+              accessibilityLabel={favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+              accessibilityState={{ selected: favorite }}
+            >
+              <Ionicons name={favorite ? "heart" : "heart-outline"} size={20} color="#FFF" />
             </TouchableOpacity>
           </View>
           <View style={[styles.emojiCircle, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
@@ -285,6 +306,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   backBtn: { position: "absolute", left: 16 },
+  favBtn: { position: "absolute", right: 16 },
   backCircle: {
     width: 40,
     height: 40,

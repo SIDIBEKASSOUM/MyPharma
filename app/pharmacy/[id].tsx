@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import {
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -105,17 +106,24 @@ export default function PharmacyDetailScreen() {
               </View>
             </View>
             <View style={[styles.infoDivider, { backgroundColor: C.border }]} />
-            <View style={styles.infoRow}>
+            <TouchableOpacity
+              style={styles.infoRow}
+              onPress={() => Linking.openURL(`tel:${pharmacy.phone.replace(/\s/g, "")}`)}
+              activeOpacity={0.7}
+              accessibilityRole="link"
+              accessibilityLabel={`Appeler ${pharmacy.name}`}
+            >
               <Feather name="phone" size={16} color={C.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.infoLabel, { color: C.textMuted, fontFamily: "Inter_400Regular" }]}>
                   Téléphone
                 </Text>
-                <Text style={[styles.infoValue, { color: C.text, fontFamily: "Inter_500Medium" }]}>
+                <Text style={[styles.infoValue, { color: C.primary, fontFamily: "Inter_500Medium" }]}>
                   {pharmacy.phone}
                 </Text>
               </View>
-            </View>
+              <Feather name="chevron-right" size={16} color={C.textMuted} />
+            </TouchableOpacity>
             <View style={[styles.infoDivider, { backgroundColor: C.border }]} />
             <View style={styles.infoRow}>
               <Feather name="star" size={16} color={C.warning} />
@@ -161,6 +169,11 @@ export default function PharmacyDetailScreen() {
           <TouchableOpacity
             style={[styles.dirBtn, { backgroundColor: C.primaryLight }]}
             activeOpacity={0.7}
+            onPress={() =>
+              Linking.openURL(
+                `https://www.google.com/maps/dir/?api=1&destination=${pharmacy.lat},${pharmacy.lng}`
+              )
+            }
           >
             <Feather name="navigation" size={18} color={C.primary} />
             <Text style={[styles.dirBtnText, { color: C.primary, fontFamily: "Inter_600SemiBold" }]}>

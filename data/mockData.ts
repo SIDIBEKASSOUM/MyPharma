@@ -3,12 +3,14 @@ import { normalizeText } from "@/lib/text";
 import { MEDICINES } from "./medicines";
 import { PHARMACIES } from "./pharmacies";
 import { STOCK } from "./stock";
+import { SYMPTOMS, type Symptom } from "./symptoms";
 import type { Medicine, Pharmacy, StockItem } from "./types";
 
 export type { Medicine, Pharmacy, Prescription, StockItem } from "./types";
 export { CATEGORIES, MEDICINES } from "./medicines";
 export { PHARMACIES } from "./pharmacies";
 export { STOCK } from "./stock";
+export { SYMPTOMS, type Symptom } from "./symptoms";
 
 export function searchMedicines(query: string, category?: string): Medicine[] {
   let results = MEDICINES;
@@ -24,6 +26,18 @@ export function searchMedicines(query: string, category?: string): Medicine[] {
     );
   }
   return results;
+}
+
+/** Symptoms matching what the user typed ("fievre", "mal de tete", "palu"…). */
+export function searchSymptoms(query: string): Symptom[] {
+  const q = normalizeText(query);
+  if (q.length < 3) return [];
+  return SYMPTOMS.filter((symptom) =>
+    [symptom.label, ...symptom.keywords].some((term) => {
+      const t = normalizeText(term);
+      return t.includes(q) || (t.length >= 4 && q.includes(t));
+    })
+  );
 }
 
 export function getPharmaciesForMedicine(medicineId: string): Array<Pharmacy & { stock: StockItem }> {

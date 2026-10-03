@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CategoryFilter from "@/components/CategoryFilter";
 import MedicineCard from "@/components/MedicineCard";
 import SearchBar from "@/components/SearchBar";
+import SymptomCard from "@/components/SymptomCard";
 import Colors from "@/constants/colors";
 import {
   CATEGORIES,
@@ -24,6 +25,7 @@ import {
   Medicine,
   PHARMACIES,
   searchMedicines,
+  searchSymptoms,
   getPharmaciesForMedicine,
 } from "@/data/mockData";
 // Popular products shown on the home screen (a mix of categories).
@@ -52,6 +54,12 @@ export default function HomeScreen() {
         ? searchMedicines(searchQuery, selectedCategory)
         : [],
     [searchQuery, selectedCategory, isSearching]
+  );
+
+  // Symptoms ("fièvre", "toux"…) get advice cards, shown only when no category filter is active.
+  const symptomResults = useMemo(
+    () => (selectedCategory === "Tous" ? searchSymptoms(searchQuery) : []),
+    [searchQuery, selectedCategory]
   );
 
   const featuredMedicines = useMemo(
@@ -99,6 +107,7 @@ export default function HomeScreen() {
                 if (t.length > 0) setIsSearching(true);
               }}
               onClear={handleClear}
+              placeholder="Médicament ou symptôme (fièvre, toux…)"
               autoFocus={false}
             />
           </View>
@@ -117,7 +126,10 @@ export default function HomeScreen() {
 
         {isSearching ? (
           <View style={styles.section}>
-            {searchResults.length === 0 ? (
+            {symptomResults.map((symptom) => (
+              <SymptomCard key={symptom.id} symptom={symptom} />
+            ))}
+            {searchResults.length === 0 && symptomResults.length === 0 ? (
               <View style={styles.empty}>
                 <Feather name="search" size={40} color={C.textMuted} />
                 <Text style={[styles.emptyTitle, { color: C.text, fontFamily: "Inter_600SemiBold" }]}>
