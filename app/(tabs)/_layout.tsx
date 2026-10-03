@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
@@ -14,20 +14,20 @@ function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Accueil</Label>
+        <NativeTabs.Trigger.Icon sf={{ default: "house", selected: "house.fill" }} />
+        <NativeTabs.Trigger.Label>Accueil</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="pharmacies">
-        <Icon sf={{ default: "cross.case", selected: "cross.case.fill" }} />
-        <Label>Pharmacies</Label>
+        <NativeTabs.Trigger.Icon sf={{ default: "cross.case", selected: "cross.case.fill" }} />
+        <NativeTabs.Trigger.Label>Pharmacies</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="orders">
-        <Icon sf={{ default: "bag", selected: "bag.fill" }} />
-        <Label>Commandes</Label>
+        <NativeTabs.Trigger.Icon sf={{ default: "bag", selected: "bag.fill" }} />
+        <NativeTabs.Trigger.Label>Commandes</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person", selected: "person.fill" }} />
-        <Label>Profil</Label>
+        <NativeTabs.Trigger.Icon sf={{ default: "person", selected: "person.fill" }} />
+        <NativeTabs.Trigger.Label>Profil</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
