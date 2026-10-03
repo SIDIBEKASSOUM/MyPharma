@@ -130,6 +130,34 @@ export default function PharmacyDetailScreen() {
             </View>
           </View>
 
+          <View style={[styles.infoCard, { backgroundColor: C.surface, gap: 14 }]}>
+            {(
+              [
+                { icon: "plus-circle", title: "Services", items: pharmacy.services },
+                { icon: "shield", title: "Assurances acceptées", items: pharmacy.insurances },
+                { icon: "credit-card", title: "Moyens de paiement", items: pharmacy.payments },
+              ] as const
+            ).map((group) => (
+              <View key={group.title}>
+                <View style={styles.groupHeader}>
+                  <Feather name={group.icon} size={15} color={C.primary} />
+                  <Text style={[styles.infoLabel, { color: C.textSecondary, fontFamily: "Inter_600SemiBold" }]}>
+                    {group.title}
+                  </Text>
+                </View>
+                <View style={styles.tagRow}>
+                  {group.items.map((item) => (
+                    <View key={item} style={[styles.tag, { backgroundColor: C.primaryLight }]}>
+                      <Text style={[styles.tagText, { color: C.primaryDark, fontFamily: "Inter_500Medium" }]}>
+                        {item}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+
           <TouchableOpacity
             style={[styles.dirBtn, { backgroundColor: C.primaryLight }]}
             activeOpacity={0.7}
@@ -156,6 +184,7 @@ export default function PharmacyDetailScreen() {
                     </Text>
                     <Text style={[styles.stockCat, { color: C.textMuted, fontFamily: "Inter_400Regular" }]}>
                       {item.category}
+                      {item.prescription === "required" ? " · Ordonnance" : ""}
                     </Text>
                   </View>
                   <View style={styles.stockRight}>
@@ -174,6 +203,7 @@ export default function PharmacyDetailScreen() {
                           price: item.stock.price,
                           quantity: 1,
                           unit: item.stock.unit,
+                          prescription: item.prescription === "required",
                         });
                       }}
                     >
@@ -191,6 +221,10 @@ export default function PharmacyDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+  groupHeader: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
+  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  tag: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  tagText: { fontSize: 12 },
   container: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   hero: {

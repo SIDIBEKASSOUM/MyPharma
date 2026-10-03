@@ -12,12 +12,17 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import InfoSection from "@/components/InfoSection";
+import MedicineCard from "@/components/MedicineCard";
 import PharmacyCard from "@/components/PharmacyCard";
 import Colors from "@/constants/colors";
 import { useAddToCart } from "@/context/CartContext";
 import {
   MEDICINES,
-  PHARMACIES,
+  countAvailablePharmacies,
+  formatPrice,
+  getAlternatives,
+  getMinPrice,
   getPharmaciesForMedicine,
 } from "@/data/mockData";
 
@@ -34,8 +39,12 @@ export default function MedicineDetailScreen() {
     [id]
   );
 
-  const available = pharmacyData.filter((p) => p.stock.available);
+  const available = pharmacyData
+    .filter((p) => p.stock.available)
+    .sort((a, b) => a.stock.price - b.stock.price);
   const unavailable = pharmacyData.filter((p) => !p.stock.available);
+  const alternatives = useMemo(() => (medicine ? getAlternatives(medicine) : []), [medicine]);
+  const needsPrescription = medicine?.prescription === "required";
 
   if (!medicine) {
     return (
@@ -81,9 +90,56 @@ export default function MedicineDetailScreen() {
           <Text style={[styles.heroGeneric, { fontFamily: "Inter_400Regular" }]}>
             {medicine.genericName}
           </Text>
+          <View style={styles.chipRow}>
+            <View style={[styles.chip, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+              <Text style={[styles.chipText, { fontFamily: "Inter_500Medium" }]}>
+                {medicine.isGeneric ? "Générique" : "Marque"}
+              </Text>
+            </View>
+            <View style={[styles.chip, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+              <Text style={[styles.chipText, { fontFamily: "Inter_500Medium" }]}>{medicine.form}</Text>
+            </View>
+          </View>
+          {medicine.brandNames.length > 0 && (
+            <Text style={[styles.brands, { fontFamily: "Inter_400Regular" }]}>
+              Aussi connu sous : {medicine.brandNames.join(", ")}
+            </Text>
+          )}
         </View>
 
         <View style={styles.content}>
+          <View
+            style={[
+              styles.rxBanner,
+              { backgroundColor: needsPrescription ? C.warningLight : C.successLight },
+            ]}
+          >
+            <Feather
+              name={needsPrescription ? "file-text" : "check-circle"}
+              size={18}
+              color={needsPrescription ? C.warning : C.primaryDark}
+            />
+            <Text
+              style={[
+                styles.rxText,
+                { color: needsPrescription ? "#92400E" : C.primaryDark, fontFamily: "Inter_500Medium" },
+              ]}
+            >
+              {needsPrescription
+                ? "Délivré sur ordonnance. Vous devrez la présenter à la pharmacie."
+                : "Disponible sans ordonnance. Demandez conseil à votre pharmacien."}
+            </Text>
+          </View>
+
+          {medicine.warning && (
+            <View style={[styles.rxBanner, { backgroundColor: C.dangerLight }]}>
+              <Feather name="alert-triangle" size={18} color={C.danger} />
+              <Text style={[styles.rxText, { color: "#991B1B", fontFamily: "Inter_500Medium" }]}>
+                {medicine.warning}
+              </Text>
+            </View>
+          )}
+
           <View style={[styles.descCard, { backgroundColor: C.surface }]}>
             <Text style={[styles.descTitle, { color: C.text, fontFamily: "Inter_700Bold" }]}>
               Description
@@ -92,6 +148,15 @@ export default function MedicineDetailScreen() {
               {medicine.description}
             </Text>
           </View>
+
+          <InfoSection title="Posologie générale" icon="clock" content={medicine.dosage} defaultOpen />
+          <InfoSection title="Contre-indications" icon="slash" content={medicine.contraindications} />
+          <InfoSection title="Effets indésirables" icon="activity" content={medicine.sideEffects} />
+          <InfoSection title="Conservation" icon="thermometer" content={medicine.storage} />
+          <Text style={[styles.disclaimer, { color: C.textMuted, fontFamily: "Inter_400Regular" }]}>
+            Informations générales, non personnalisées. Suivez toujours votre ordonnance et les conseils de
+            votre médecin ou de votre pharmacien.
+          </Text>
 
           <View style={[styles.statsRow]}>
             <View style={[styles.statCard, { backgroundColor: C.primaryLight }]}>
@@ -144,6 +209,7 @@ export default function MedicineDetailScreen() {
                           price: p.stock.price,
                           quantity: 1,
                           unit: p.stock.unit,
+                          prescription: needsPrescription,
                         },
                         () => router.push("/(tabs)/orders")
                       );
@@ -174,6 +240,33 @@ export default function MedicineDetailScreen() {
                   onPress={() => router.push(`/pharmacy/${p.id}`)}
                 />
               ))}
+            </>
+          )}
+
+          {alternatives.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: C.text, fontFamily: "Inter_700Bold" }]}>
+                {medicine.isGeneric ? "Version de marque" : "Alternative générique"}
+              </Text>
+              {alternatives.map((alt) => {
+                const price = getMinPrice(alt.id);
+                const current = getMinPrice(medicine.id);
+                return (
+                  <View key={alt.id}>
+                    <MedicineCard
+                      medicine={alt}
+                      availableAt={countAvailablePharmacies(alt.id)}
+                      onPress={() => router.push(`/medicine/${alt.id}`)}
+                    />
+                    {price !== null && current !== null && price !== current && (
+                      <Text style={[styles.altPrice, { color: C.textSecondary, fontFamily: "Inter_400Regular" }]}>
+                        À partir de {formatPrice(price)}
+                        {price < current ? ` (${formatPrice(current - price)} de moins)` : ""}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
             </>
           )}
         </View>
@@ -217,6 +310,21 @@ const styles = StyleSheet.create({
   catPillText: { color: "#FFF", fontSize: 12 },
   heroName: { color: "#FFF", fontSize: 22, textAlign: "center", marginBottom: 4 },
   heroGeneric: { color: "rgba(255,255,255,0.7)", fontSize: 14 },
+  chipRow: { flexDirection: "row", gap: 8, marginTop: 10 },
+  chip: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
+  chipText: { color: "#FFF", fontSize: 12 },
+  brands: { color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 8, textAlign: "center" },
+  rxBanner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  rxText: { flex: 1, fontSize: 13, lineHeight: 19 },
+  disclaimer: { fontSize: 12, lineHeight: 17, marginBottom: 16, marginTop: 2 },
+  altPrice: { fontSize: 12, marginTop: -4, marginBottom: 10, marginLeft: 6 },
   content: { padding: 16 },
   descCard: {
     borderRadius: 16,

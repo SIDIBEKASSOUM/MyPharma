@@ -103,6 +103,11 @@ export default function OrdersScreen() {
                       <Text style={[styles.cartPharmName, { color: C.textSecondary, fontFamily: "Inter_400Regular" }]}>
                         {item.pharmacyName}
                       </Text>
+                      {item.prescription && (
+                        <Text style={[styles.cartPharmName, { color: "#92400E", fontFamily: "Inter_500Medium" }]}>
+                          Ordonnance requise
+                        </Text>
+                      )}
                     </View>
                     <TouchableOpacity
                       onPress={() => {

@@ -6,16 +6,7 @@ import {
   getPharmaciesForMedicine,
 } from "@/data/mockData";
 import { ScannedMedication } from "@/lib/scanApi";
-
-function normalize(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9 ]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+import { normalizeText as normalize } from "@/lib/text";
 
 /** Strength in milligrams ("500 mg" -> 500, "1 g" -> 1000), or null if none is written. */
 export function parseStrengthMg(text: string | null | undefined): number | null {
@@ -28,22 +19,44 @@ export function parseStrengthMg(text: string | null | undefined): number | null 
   return value / 1000;
 }
 
-function nameKeys(medicine: Medicine): string[] {
-  const withoutStrength = normalize(medicine.name.replace(/\d+(?:[.,]\d+)?\s*(mg|g|ml|mcg)/gi, ""));
-  return [normalize(medicine.genericName), withoutStrength].filter((k) => k.length >= 4);
+interface NameKey {
+  key: string;
+  /** From the product's own or generic name, as opposed to a trade name it is also known by. */
+  own: boolean;
 }
 
-/** Finds the catalogue medicine a prescribed name refers to (longest matching name wins). */
+function nameKeys(medicine: Medicine): NameKey[] {
+  const withoutStrength = normalize(medicine.name.replace(/\d+(?:[.,]\d+)?\s*(mg|g|ml|mcg|µg)/gi, ""));
+  return [
+    { key: normalize(medicine.genericName), own: true },
+    { key: withoutStrength, own: true },
+    ...medicine.brandNames.map((b) => ({ key: normalize(b), own: false })),
+  ].filter((k) => k.key.length >= 3);
+}
+
+/**
+ * Finds the catalogue medicine a prescribed name refers to. The closest name wins:
+ * an exact match beats a name contained in the written text, which beats a longer
+ * catalogue name that merely contains what was written (so "Paracétamol" is not
+ * resolved to "Paracétamol sirop" or "Amoxicilline" to "Amoxicilline + clavulanate").
+ */
 export function matchMedicine(scanned: ScannedMedication): Medicine | undefined {
   const written = normalize(scanned.name);
-  if (written.length < 4) return undefined;
+  if (written.length < 3) return undefined;
 
   let best: { medicine: Medicine; score: number } | undefined;
   for (const medicine of MEDICINES) {
-    for (const key of nameKeys(medicine)) {
-      if (written.includes(key) || (written.length >= 5 && key.includes(written))) {
-        if (!best || key.length > best.score) best = { medicine, score: key.length };
-      }
+    for (const { key, own } of nameKeys(medicine)) {
+      let score: number;
+      if (written === key) score = 100 + key.length;
+      else if (key.length >= 4 && written.includes(key)) score = key.length;
+      else if (key.length >= 4 && written.length >= 5 && key.includes(written)) score = written.length - 1;
+      else continue;
+
+      if (own) score += 1;
+      // A written form ("sirop", "crème"…) breaks ties between presentations of one ingredient.
+      if (written.includes(normalize(medicine.form))) score += 5;
+      if (!best || score > best.score) best = { medicine, score };
     }
   }
   return best?.medicine;

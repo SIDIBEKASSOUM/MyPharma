@@ -46,6 +46,13 @@ export default function MedicineCard({
               {medicine.category}
             </Text>
           </View>
+          {medicine.prescription === "required" && (
+            <View style={[styles.catBadge, { backgroundColor: C.warningLight }]}>
+              <Text style={[styles.catText, { color: "#92400E", fontFamily: "Inter_500Medium" }]}>
+                Ordonnance
+              </Text>
+            </View>
+          )}
           {availableAt !== undefined && (
             <Text style={[styles.avail, { color: C.textMuted, fontFamily: "Inter_400Regular" }]}>
               {availableAt} pharmacie{availableAt > 1 ? "s" : ""}
@@ -87,7 +94,7 @@ const styles = StyleSheet.create({
   info: { flex: 1 },
   name: { fontSize: 15, marginBottom: 2 },
   generic: { fontSize: 12, marginBottom: 6 },
-  row: { flexDirection: "row", alignItems: "center", gap: 8 },
+  row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   catBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   catText: { fontSize: 11 },
   avail: { fontSize: 12 },

@@ -48,8 +48,12 @@ export default function CheckoutScreen() {
   const pharmacyId = items[0]?.pharmacyId ?? "";
   const pharmacyName = items[0]?.pharmacyName ?? "";
 
+  const prescriptionItems = items.filter((i) => i.prescription);
+  const [prescriptionConfirmed, setPrescriptionConfirmed] = useState(false);
+  const blockedByPrescription = prescriptionItems.length > 0 && !prescriptionConfirmed;
+
   const handleOrder = async () => {
-    if (items.length === 0) return;
+    if (items.length === 0 || blockedByPrescription) return;
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     const order = placeOrder(pharmacyId, pharmacyName, items, grandTotal);
@@ -180,10 +184,44 @@ export default function CheckoutScreen() {
           </View>
         </View>
 
+        {prescriptionItems.length > 0 && (
+          <TouchableOpacity
+            style={[styles.rxBox, { backgroundColor: C.warningLight }]}
+            onPress={() => setPrescriptionConfirmed((v) => !v)}
+            activeOpacity={0.7}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: prescriptionConfirmed }}
+          >
+            <View
+              style={[
+                styles.rxCheck,
+                {
+                  borderColor: prescriptionConfirmed ? C.primary : C.warning,
+                  backgroundColor: prescriptionConfirmed ? C.primary : "transparent",
+                },
+              ]}
+            >
+              {prescriptionConfirmed && <Feather name="check" size={14} color="#FFF" />}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rxTitle, { fontFamily: "Inter_600SemiBold" }]}>
+                Ordonnance requise
+              </Text>
+              <Text style={[styles.rxText, { fontFamily: "Inter_400Regular" }]}>
+                Délivrés uniquement sur ordonnance : {prescriptionItems.map((i) => i.medicineName).join(", ")}.
+                Je présenterai l'ordonnance originale à la pharmacie au moment du retrait ou de la livraison.
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
-          style={[styles.confirmBtn, { backgroundColor: loading ? C.textMuted : C.primary }]}
+          style={[
+            styles.confirmBtn,
+            { backgroundColor: loading || blockedByPrescription ? C.textMuted : C.primary },
+          ]}
           onPress={handleOrder}
-          disabled={loading}
+          disabled={loading || blockedByPrescription}
         >
           <Feather name="check-circle" size={20} color="#FFF" />
           <Text style={[styles.confirmText, { fontFamily: "Inter_700Bold" }]}>
@@ -275,4 +313,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   confirmText: { color: "#FFF", fontSize: 17 },
+  rxBox: { flexDirection: "row", gap: 12, padding: 14, borderRadius: 14, marginTop: 8 },
+  rxCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  rxTitle: { color: "#92400E", fontSize: 14, marginBottom: 2 },
+  rxText: { color: "#92400E", fontSize: 13, lineHeight: 19 },
 });

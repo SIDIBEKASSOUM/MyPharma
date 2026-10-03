@@ -18,6 +18,8 @@ export interface CartItem {
   price: number;
   quantity: number;
   unit: string;
+  /** The medicine is only dispensed against a prescription. */
+  prescription?: boolean;
 }
 
 interface CartContextType {

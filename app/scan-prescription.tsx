@@ -132,6 +132,7 @@ export default function ScanPrescriptionScreen() {
           price: stock.price,
           quantity,
           unit: stock.unit,
+          prescription: medicine.prescription === "required",
         });
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

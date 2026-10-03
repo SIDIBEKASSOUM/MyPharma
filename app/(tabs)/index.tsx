@@ -18,7 +18,17 @@ import CategoryFilter from "@/components/CategoryFilter";
 import MedicineCard from "@/components/MedicineCard";
 import SearchBar from "@/components/SearchBar";
 import Colors from "@/constants/colors";
-import { CATEGORIES, MEDICINES, PHARMACIES, searchMedicines, getPharmaciesForMedicine } from "@/data/mockData";
+import {
+  CATEGORIES,
+  MEDICINES,
+  Medicine,
+  PHARMACIES,
+  searchMedicines,
+  getPharmaciesForMedicine,
+} from "@/data/mockData";
+// Popular products shown on the home screen (a mix of categories).
+const FEATURED_IDS = ["m1", "m2", "m3", "m29", "m35", "m5"];
+
 const QUICK_ACTIONS = [
   { id: "search", label: "Rechercher", icon: "search" as const, color: "#10B981", bg: "#D1FAE5" },
   { id: "guard", label: "De garde", icon: "moon" as const, color: "#6366F1", bg: "#EDE9FE" },
@@ -44,7 +54,10 @@ export default function HomeScreen() {
     [searchQuery, selectedCategory, isSearching]
   );
 
-  const featuredMedicines = useMemo(() => MEDICINES.slice(0, 5), []);
+  const featuredMedicines = useMemo(
+    () => FEATURED_IDS.map((id) => MEDICINES.find((m) => m.id === id)).filter((m): m is Medicine => !!m),
+    []
+  );
 
   const handleSearchFocus = () => setIsSearching(true);
   const handleClear = () => {
