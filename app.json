@@ -29,7 +29,14 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "MyPharma utilise l'appareil photo pour scanner vos ordonnances.",
+          "photosPermission": "MyPharma accède à vos photos pour lire vos ordonnances."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

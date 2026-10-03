@@ -19,8 +19,6 @@ import MedicineCard from "@/components/MedicineCard";
 import SearchBar from "@/components/SearchBar";
 import Colors from "@/constants/colors";
 import { CATEGORIES, MEDICINES, PHARMACIES, searchMedicines, getPharmaciesForMedicine } from "@/data/mockData";
-import { showAlert } from "@/lib/alert";
-
 const QUICK_ACTIONS = [
   { id: "search", label: "Rechercher", icon: "search" as const, color: "#10B981", bg: "#D1FAE5" },
   { id: "guard", label: "De garde", icon: "moon" as const, color: "#6366F1", bg: "#EDE9FE" },
@@ -149,11 +147,7 @@ export default function HomeScreen() {
                       if (action.id === "guard") router.push("/guard-pharmacies");
                       else if (action.id === "search") setIsSearching(true);
                       else if (action.id === "emergency") router.push("/emergency");
-                      else if (action.id === "scan")
-                        showAlert(
-                          "Scanner une ordonnance",
-                          "Cette fonctionnalité sera bientôt disponible."
-                        );
+                      else if (action.id === "scan") router.push("/scan-prescription");
                     }}
                     activeOpacity={0.7}
                   >
