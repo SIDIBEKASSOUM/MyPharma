@@ -1,0 +1,256 @@
+import { Feather } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useMemo } from "react";
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import PharmacyCard from "@/components/PharmacyCard";
+import Colors from "@/constants/colors";
+import { useCart } from "@/context/CartContext";
+import {
+  MEDICINES,
+  PHARMACIES,
+  getPharmaciesForMedicine,
+} from "@/data/mockData";
+
+export default function MedicineDetailScreen() {
+  const C = Colors.light;
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { addItem } = useCart();
+
+  const medicine = useMemo(() => MEDICINES.find((m) => m.id === id), [id]);
+  const pharmacyData = useMemo(
+    () => (id ? getPharmaciesForMedicine(id) : []),
+    [id]
+  );
+
+  const available = pharmacyData.filter((p) => p.stock.available);
+  const unavailable = pharmacyData.filter((p) => !p.stock.available);
+
+  if (!medicine) {
+    return (
+      <View style={[styles.center, { backgroundColor: C.background }]}>
+        <Text style={{ color: C.text, fontFamily: "Inter_400Regular" }}>
+          Médicament introuvable
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: C.background }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 100 : 40 }}
+      >
+        <View style={[styles.heroSection, { backgroundColor: C.primary }]}>
+          <View
+            style={[
+              styles.backBtn,
+              { top: Platform.OS === "web" ? 67 + 16 : insets.top + 16 },
+            ]}
+          >
+            <TouchableOpacity
+              style={[styles.backCircle, { backgroundColor: "rgba(255,255,255,0.3)" }]}
+              onPress={() => router.back()}
+            >
+              <Feather name="arrow-left" size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+          <View style={[styles.emojiCircle, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
+            <Text style={styles.heroEmoji}>{medicine.imageEmoji}</Text>
+          </View>
+          <View style={[styles.catPill, { backgroundColor: "rgba(255,255,255,0.25)" }]}>
+            <Text style={[styles.catPillText, { fontFamily: "Inter_600SemiBold" }]}>
+              {medicine.category}
+            </Text>
+          </View>
+          <Text style={[styles.heroName, { fontFamily: "Inter_700Bold" }]}>
+            {medicine.name}
+          </Text>
+          <Text style={[styles.heroGeneric, { fontFamily: "Inter_400Regular" }]}>
+            {medicine.genericName}
+          </Text>
+        </View>
+
+        <View style={styles.content}>
+          <View style={[styles.descCard, { backgroundColor: C.surface }]}>
+            <Text style={[styles.descTitle, { color: C.text, fontFamily: "Inter_700Bold" }]}>
+              Description
+            </Text>
+            <Text style={[styles.descText, { color: C.textSecondary, fontFamily: "Inter_400Regular" }]}>
+              {medicine.description}
+            </Text>
+          </View>
+
+          <View style={[styles.statsRow]}>
+            <View style={[styles.statCard, { backgroundColor: C.primaryLight }]}>
+              <Text style={[styles.statNum, { color: C.primary, fontFamily: "Inter_700Bold" }]}>
+                {available.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: C.primary, fontFamily: "Inter_400Regular" }]}>
+                Disponibles
+              </Text>
+            </View>
+            <View style={[styles.statCard, { backgroundColor: C.background }]}>
+              <Text style={[styles.statNum, { color: C.text, fontFamily: "Inter_700Bold" }]}>
+                {available.length > 0
+                  ? available[0].stock.price.toLocaleString("fr-FR")
+                  : "—"}
+              </Text>
+              <Text style={[styles.statLabel, { color: C.textSecondary, fontFamily: "Inter_400Regular" }]}>
+                FCFA min.
+              </Text>
+            </View>
+          </View>
+
+          {available.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: C.text, fontFamily: "Inter_700Bold" }]}>
+                En stock ({available.length})
+              </Text>
+              {available.map((p) => (
+                <View key={p.id}>
+                  <PharmacyCard
+                    pharmacy={p}
+                    price={p.stock.price}
+                    available={true}
+                    unit={p.stock.unit}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push(`/pharmacy/${p.id}`);
+                    }}
+                  />
+                  <TouchableOpacity
+                    style={[styles.addBtn, { backgroundColor: C.primary }]}
+                    onPress={() => {
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      addItem({
+                        medicineId: medicine.id,
+                        medicineName: medicine.name,
+                        pharmacyId: p.id,
+                        pharmacyName: p.name,
+                        price: p.stock.price,
+                        quantity: 1,
+                        unit: p.stock.unit,
+                      });
+                      router.push("/(tabs)/orders");
+                    }}
+                  >
+                    <Feather name="shopping-cart" size={16} color="#FFF" />
+                    <Text style={[styles.addBtnText, { fontFamily: "Inter_600SemiBold" }]}>
+                      Ajouter au panier
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          )}
+
+          {unavailable.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: C.textMuted, fontFamily: "Inter_700Bold" }]}>
+                En rupture ({unavailable.length})
+              </Text>
+              {unavailable.map((p) => (
+                <PharmacyCard
+                  key={p.id}
+                  pharmacy={p}
+                  price={p.stock.price}
+                  available={false}
+                  unit={p.stock.unit}
+                  onPress={() => router.push(`/pharmacy/${p.id}`)}
+                />
+              ))}
+            </>
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  heroSection: {
+    paddingTop: 100,
+    paddingBottom: 32,
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  backBtn: { position: "absolute", left: 16 },
+  backCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emojiCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  heroEmoji: { fontSize: 40 },
+  catPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 8,
+  },
+  catPillText: { color: "#FFF", fontSize: 12 },
+  heroName: { color: "#FFF", fontSize: 22, textAlign: "center", marginBottom: 4 },
+  heroGeneric: { color: "rgba(255,255,255,0.7)", fontSize: 14 },
+  content: { padding: 16 },
+  descCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  descTitle: { fontSize: 16, marginBottom: 8 },
+  descText: { fontSize: 14, lineHeight: 22 },
+  statsRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  statCard: {
+    flex: 1,
+    borderRadius: 14,
+    padding: 16,
+    alignItems: "center",
+  },
+  statNum: { fontSize: 24, marginBottom: 4 },
+  statLabel: { fontSize: 12 },
+  sectionTitle: { fontSize: 17, marginBottom: 10, marginTop: 4 },
+  addBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: -2,
+    marginBottom: 12,
+  },
+  addBtnText: { color: "#FFF", fontSize: 14 },
+});
