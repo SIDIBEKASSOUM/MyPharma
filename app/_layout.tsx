@@ -29,6 +29,7 @@ function RootLayoutNav() {
       <Stack.Screen name="medicine/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="pharmacy/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="guard-pharmacies" options={{ headerShown: false }} />
+      <Stack.Screen name="emergency" options={{ headerShown: false }} />
       <Stack.Screen name="checkout" options={{ headerShown: false }} />
       <Stack.Screen name="notifications" options={{ headerShown: false }} />
       <Stack.Screen name="order/[id]" options={{ headerShown: false }} />

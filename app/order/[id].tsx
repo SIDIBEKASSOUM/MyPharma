@@ -42,6 +42,8 @@ export default function OrderDetailScreen() {
     );
   }
 
+  const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+  const deliveryFee = order.totalPrice - subtotal;
   const currentStep = STATUS_STEPS.indexOf(order.status);
   const isCancelled = order.status === "cancelled";
 
@@ -150,6 +152,26 @@ export default function OrderDetailScreen() {
             </View>
           ))}
           <View style={[styles.divider, { backgroundColor: C.border }]} />
+          {deliveryFee > 0 && (
+            <>
+              <View style={styles.feeRow}>
+                <Text style={[styles.feeLabel, { color: C.textSecondary, fontFamily: "Inter_400Regular" }]}>
+                  Sous-total
+                </Text>
+                <Text style={[styles.feeValue, { color: C.text, fontFamily: "Inter_500Medium" }]}>
+                  {formatPrice(subtotal)}
+                </Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={[styles.feeLabel, { color: C.textSecondary, fontFamily: "Inter_400Regular" }]}>
+                  Livraison
+                </Text>
+                <Text style={[styles.feeValue, { color: C.text, fontFamily: "Inter_500Medium" }]}>
+                  {formatPrice(deliveryFee)}
+                </Text>
+              </View>
+            </>
+          )}
           <View style={styles.totalRow}>
             <Text style={[styles.totalLabel, { color: C.text, fontFamily: "Inter_700Bold" }]}>
               Total
@@ -220,7 +242,10 @@ const styles = StyleSheet.create({
   itemQty: { fontSize: 12 },
   itemTotal: { fontSize: 14 },
   divider: { height: 1, marginVertical: 10 },
-  totalRow: { flexDirection: "row", justifyContent: "space-between" },
+  feeRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 2 },
+  feeLabel: { fontSize: 14 },
+  feeValue: { fontSize: 14 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 4 },
   totalLabel: { fontSize: 16 },
   totalValue: { fontSize: 18 },
 });
